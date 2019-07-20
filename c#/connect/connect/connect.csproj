@@ -60,6 +60,7 @@
   <ItemGroup>
     <Compile Include="Api.cs" />
     <Compile Include="Connect.cs" />
+    <Compile Include="Deribit_Api.cs" />
     <Compile Include="Hpo.cs" />
     <Compile Include="Exch.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

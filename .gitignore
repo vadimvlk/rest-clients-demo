@@ -1,0 +1,10 @@
+﻿################################################################################
+# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
+################################################################################
+
+/.vs
+/c#/connect/.vs/connect/v16
+/c#/connect/packages
+/c#/connect/connect/obj/Release
+/c#/connect/connect/obj/Debug
+/c#/connect/connect/bin/Debug
