@@ -112,7 +112,9 @@ namespace connect
                 request.AddHeader("X-Auth", this.apiKey + ":" + digest);
                 request.AddHeader("X-Organization-Id", this.orgId);
             }
-
+            request.AddHeader("Accept", "application/json");
+            request.AddParameter("currency", "ETH");
+            request.AddParameter("kind", "option");
             var response = client.Execute(request, RestSharp.Method.GET);
             var content = response.Content;
             return content;
@@ -123,7 +125,7 @@ namespace connect
             var client = new RestSharp.RestClient(this.urlRoot);
             var request = new RestSharp.RestRequest(url);
             request.AddHeader("Accept", "application/json");
-            request.AddHeader("Content-type", "application/json");
+            request.AddHeader("Accept", "application/json");
 
             string nonce = Guid.NewGuid().ToString();
             string digest = Api.HashBySegments(this.apiSecret, this.apiKey, time, nonce, this.orgId, "POST", getPath(url), getQuery(url), payload);

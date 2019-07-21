@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace connect
 {
-  public class Deribit_Api
+  public class DeribitApi
     {
 
 

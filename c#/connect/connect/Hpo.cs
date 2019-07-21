@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace connect
@@ -12,13 +14,13 @@ namespace connect
     {
         private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
-        private static string URL_ROOT   = "https://api-test.nicehash.com"; //use https://api2.nicehash.com for production
-        private static string ORG_ID     = "aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee";
-        private static string API_KEY    = "ffffffff-gggg-hhhh-iiii-jjjjjjjjjjjj";
-        private static string API_SECRET = "kkkkkkkk-llll-mmmm-nnnn-oooooooooooooooooooo-pppp-qqqq-rrrr-ssssssssssss";
+        private static string URL_ROOT = "https://deribit.com";
+        private static string ORG_ID = "";
+        private static string API_KEY = "";
+        private static string API_SECRET = "";
 
-        private static string ALGORITHM  = "X16R"; //algo of your order
-	    private static string CURRENCY   = "TBTC"; //user BTC for production
+        private static string ALGORITHM = "X16R"; //algo of your order
+        private static string CURRENCY = "TBTC"; //user BTC for production
 
         public Hpo()
         {
@@ -28,6 +30,71 @@ namespace connect
             NLog.LogManager.Configuration = config;
 
             Api api = new Api(URL_ROOT, ORG_ID, API_KEY, API_SECRET);
+
+            // my CODE
+
+            var alllist = api.get("/api/v2/public/get_book_summary_by_currency");
+            var list = Newtonsoft.Json.JsonConvert.DeserializeObject<DeribitCurrency>(alllist);
+            var _list = new List<double?>();
+
+            var rg = new Regex(@"-(\d+)-");
+            var result2 = rg.Match(list.Result[0].InstrumentName).Groups[1].Value;
+            Console.WriteLine(result2);
+            Console.Read();
+
+            int result;
+            string resultString = string.Join(string.Empty, Regex.Matches(list.Result[0].InstrumentName, @"-(\d+)-").OfType<Match>().Select(m => m.Groups[1].Value));
+            int.TryParse(resultString, out result);
+            Console.WriteLine(resultString);
+            Console.Read();
+            string dayteofexpire = "26JUL19";
+            string option = "C";
+            foreach (var t in list.Result.Where(x => x.InstrumentName.ToUpper().Contains(dayteofexpire)).Where(x => x.InstrumentName.ToUpper().Contains(option)).OrderBy(x => x.InstrumentName))
+            {
+                Console.WriteLine(t.InstrumentName + "  " + t.OpenInterest);
+            }
+
+            var sort = list.Result.Where(x => x.InstrumentName.ToUpper().Contains(dayteofexpire))
+                .Where(x => x.InstrumentName.ToUpper().Contains(option)).OrderBy(x => x.InstrumentName);
+
+           
+
+            Console.Read();
+
+            foreach (var t in list.Result)
+            {
+                if (!t.InstrumentName.ToUpper().Contains("26JUL19")) continue;
+                var variable = t.OpenInterest;
+                if (variable != null) _list.Add(variable.Value);
+            }
+
+            foreach (var VARIABLE in _list)
+            {
+                Console.WriteLine(VARIABLE);
+            }
+
+            Console.Read();
+
+            var res = list.Result[0].InstrumentName.ToCharArray().Where(n => char.IsDigit(n)).ToArray();
+
+            Console.WriteLine(res);
+            Console.WriteLine(list.Result[0].InstrumentName);
+            Console.Read();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
             //get server time
             string timeResponse = api.get("/api/v2/time");
