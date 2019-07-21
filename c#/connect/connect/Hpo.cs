@@ -48,11 +48,16 @@ namespace connect
             Console.WriteLine(resultString);
             Console.Read();
             string dayteofexpire = "26JUL19";
-            string option = "C";
+            string option = "P";
+            double? num = 0;
             foreach (var t in list.Result.Where(x => x.InstrumentName.ToUpper().Contains(dayteofexpire)).Where(x => x.InstrumentName.ToUpper().Contains(option)).OrderBy(x => x.InstrumentName))
             {
+                num += t.OpenInterest;
                 Console.WriteLine(t.InstrumentName + "  " + t.OpenInterest);
+               
             }
+
+            Console.WriteLine($"Итог по страйку {dayteofexpire} [{option}], равен : {num}");
 
             var sort = list.Result.Where(x => x.InstrumentName.ToUpper().Contains(dayteofexpire))
                 .Where(x => x.InstrumentName.ToUpper().Contains(option)).OrderBy(x => x.InstrumentName);
