@@ -11,7 +11,9 @@ using System.Threading.Tasks;
 namespace connect
 {
     class Hpo
-    {
+    {   
+        string dayteofexpire = "2aug19";
+        string option = "P";
         private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
 
         private static string URL_ROOT = "https://deribit.com";
@@ -24,6 +26,10 @@ namespace connect
 
         public Hpo()
         {
+            Console.WriteLine("Введите дату экспирации опциона");
+            dayteofexpire = Console.ReadLine();
+            Console.WriteLine("Введите направление опциона P или C");
+            option = Console.ReadLine();
             var config = new NLog.Config.LoggingConfiguration();
             var logconsole = new NLog.Targets.ConsoleTarget("logconsole");
             config.AddRule(LogLevel.Info, LogLevel.Fatal, logconsole);
@@ -39,36 +45,71 @@ namespace connect
 
             var rg = new Regex(@"-(\d+)-");
             var result2 = rg.Match(list.Result[0].InstrumentName).Groups[1].Value;
-            Console.WriteLine(result2);
-            Console.Read();
+            var sort = new List<double?>();
 
             int result;
             string resultString = string.Join(string.Empty, Regex.Matches(list.Result[0].InstrumentName, @"-(\d+)-").OfType<Match>().Select(m => m.Groups[1].Value));
             int.TryParse(resultString, out result);
-            Console.WriteLine(resultString);
-            Console.Read();
-            string dayteofexpire = "26JUL19";
-            string option = "P";
+          
+            
             double? num = 0;
-            foreach (var t in list.Result.Where(x => x.InstrumentName.ToUpper().Contains(dayteofexpire)).Where(x => x.InstrumentName.ToUpper().Contains(option)).OrderBy(x => x.InstrumentName))
+            int myres;
+            string resultString2;
+
+
+            foreach (var t in list.Result.Where(x => x.InstrumentName.ToUpper().Contains(dayteofexpire.ToUpper())).Where(x => x.InstrumentName.ToUpper().Contains(option.ToUpper())).OrderBy(x => x.InstrumentName))
             {
                 num += t.OpenInterest;
                 Console.WriteLine(t.InstrumentName + "  " + t.OpenInterest);
-               
+                 resultString2= string.Join(string.Empty, Regex.Matches(t.InstrumentName, @"-(\d+)-").OfType<Match>().Select(m => m.Groups[1].Value));
+                sort.Add(Int32.Parse(resultString2)*t.OpenInterest);
             }
 
-            Console.WriteLine($"Итог по страйку {dayteofexpire} [{option}], равен : {num}");
+            Console.WriteLine($"Итог по страйку {dayteofexpire.ToUpper()} [{option.ToUpper()}], равен : {num}");
 
-            var sort = list.Result.Where(x => x.InstrumentName.ToUpper().Contains(dayteofexpire))
-                .Where(x => x.InstrumentName.ToUpper().Contains(option)).OrderBy(x => x.InstrumentName);
+            foreach (var VARIABLE in sort)
+            {
+                Console.WriteLine(VARIABLE);
+            }
 
-           
+            var sum = sort.Sum();
+            var total = sum / num;
+
+            Console.WriteLine("Сумма средних : {0}",sum);
+            Console.WriteLine(new string('-',35));
+            Console.WriteLine("Средняя позиция по инстументу {0}, напрвления {1}, равно =  {2}", dayteofexpire.ToUpper(),option.ToUpper(),total);
+            Console.ReadLine();
+
+            //var sort = new List<int>();
+
+            //foreach (var VARIABLE in list.Result.Where(x => x.InstrumentName.ToUpper().Contains(dayteofexpire))
+            //    .Where(x => x.InstrumentName.ToUpper().Contains(option)).OrderBy(x => x.InstrumentName))
+            //{
+            //    if (VARIABLE.OpenInterest == null)
+            //    {
+            //        sort.Add(0);
+            //    }
+            //    else
+            //        sort.Add(Convert.ToInt32(VARIABLE.InstrumentName));
+            //}
+
+            //for (int i = 0; i < sort.Count(); i++)
+            //{
+
+            //    Console.WriteLine(value: string.Join(string.Empty, Regex.Matches(sort[i], @"-(\d+)-").OfType<Match>().Select(m => m.Groups[1].Value)));
+
+
+            ////}
+            //foreach (var VARIABLE in sort)
+            //{
+            //    Console.WriteLine(VARIABLE);
+            //}
 
             Console.Read();
 
             foreach (var t in list.Result)
             {
-                if (!t.InstrumentName.ToUpper().Contains("26JUL19")) continue;
+                if (!t.InstrumentName.ToUpper().Contains(dayteofexpire.ToUpper())) continue;
                 var variable = t.OpenInterest;
                 if (variable != null) _list.Add(variable.Value);
             }

@@ -14,7 +14,7 @@ namespace connect
     {
         static void Main(string[] args)
         {
-            Console.WriteLine("running HashPowerOrder");
+           
             new Hpo();
             //Console.WriteLine("\n\nrunning Exchange");
             //new Exch();
