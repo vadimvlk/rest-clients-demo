@@ -7,11 +7,12 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
+using System.Web.Hosting;
 
 namespace connect
 {
     class Hpo
-    {   
+    {
         string dayteofexpire = "2aug19";
         string option = "P";
         private static NLog.Logger Logger = NLog.LogManager.GetCurrentClassLogger();
@@ -38,7 +39,7 @@ namespace connect
             Api api = new Api(URL_ROOT, ORG_ID, API_KEY, API_SECRET);
 
             // my CODE
-
+            string pattern = @"^(\w+)-(\w+)-(\d*)-(\w?)$";
             var alllist = api.get("/api/v2/public/get_book_summary_by_currency");
             var list = Newtonsoft.Json.JsonConvert.DeserializeObject<DeribitCurrency>(alllist);
             var _list = new List<double?>();
@@ -47,22 +48,25 @@ namespace connect
             var result2 = rg.Match(list.Result[0].InstrumentName).Groups[1].Value;
             var sort = new List<double?>();
 
-            int result;
-            string resultString = string.Join(string.Empty, Regex.Matches(list.Result[0].InstrumentName, @"-(\d+)-").OfType<Match>().Select(m => m.Groups[1].Value));
-            int.TryParse(resultString, out result);
-          
-            
+            //int number;
+            //string resultString = string.Join(string.Empty, Regex.Matches(list.Result[0].InstrumentName, @"-(\d+)-").OfType<Match>().Select(m => m.Groups[1].Value));
+            //int.TryParse(resultString, out number);
             double? num = 0;
-            int myres;
-            string resultString2;
+
+            string resultString = null;
 
 
-            foreach (var t in list.Result.Where(x => x.InstrumentName.ToUpper().Contains(dayteofexpire.ToUpper())).Where(x => x.InstrumentName.ToUpper().Contains(option.ToUpper())).OrderBy(x => x.InstrumentName))
+            var result = from book in list.Result
+                         where new Regex(pattern).Match(book.InstrumentName).Groups[2].Value == dayteofexpire.ToUpper() &&
+                          new Regex(pattern).Match(book.InstrumentName).Groups[4].Value == option.ToUpper()
+                         select book;
+
+            foreach (var t in result.OrderByDescending(x=>x.InstrumentName))
             {
                 num += t.OpenInterest;
                 Console.WriteLine(t.InstrumentName + "  " + t.OpenInterest);
-                 resultString2= string.Join(string.Empty, Regex.Matches(t.InstrumentName, @"-(\d+)-").OfType<Match>().Select(m => m.Groups[1].Value));
-                sort.Add(Int32.Parse(resultString2)*t.OpenInterest);
+                resultString = string.Join(string.Empty, Regex.Matches(t.InstrumentName, @"-(\d+)-").OfType<Match>().Select(m => m.Groups[1].Value));
+                sort.Add(Int32.Parse(resultString) * t.OpenInterest);
             }
 
             Console.WriteLine($"Итог по страйку {dayteofexpire.ToUpper()} [{option.ToUpper()}], равен : {num}");
@@ -75,35 +79,11 @@ namespace connect
             var sum = sort.Sum();
             var total = sum / num;
 
-            Console.WriteLine("Сумма средних : {0}",sum);
-            Console.WriteLine(new string('-',35));
-            Console.WriteLine("Средняя позиция по инстументу {0}, напрвления {1}, равно =  {2}", dayteofexpire.ToUpper(),option.ToUpper(),total);
+            Console.WriteLine("Сумма средних : {0}", sum);
+            Console.WriteLine(new string('-', 35));
+            Console.WriteLine("Средняя позиция по инстументу {0}, напрвления {1}, равно =  {2}", dayteofexpire.ToUpper(), option.ToUpper(), total);
             Console.ReadLine();
 
-            //var sort = new List<int>();
-
-            //foreach (var VARIABLE in list.Result.Where(x => x.InstrumentName.ToUpper().Contains(dayteofexpire))
-            //    .Where(x => x.InstrumentName.ToUpper().Contains(option)).OrderBy(x => x.InstrumentName))
-            //{
-            //    if (VARIABLE.OpenInterest == null)
-            //    {
-            //        sort.Add(0);
-            //    }
-            //    else
-            //        sort.Add(Convert.ToInt32(VARIABLE.InstrumentName));
-            //}
-
-            //for (int i = 0; i < sort.Count(); i++)
-            //{
-
-            //    Console.WriteLine(value: string.Join(string.Empty, Regex.Matches(sort[i], @"-(\d+)-").OfType<Match>().Select(m => m.Groups[1].Value)));
-
-
-            ////}
-            //foreach (var VARIABLE in sort)
-            //{
-            //    Console.WriteLine(VARIABLE);
-            //}
 
             Console.Read();
 
